@@ -13,7 +13,7 @@ PROJECT_ID=$(gcloud config get project)
 IMAGE_PREFIX="gcr.io/${PROJECT_ID}/"
 
 echo "Building and pushing images with prefix ${IMAGE_PREFIX}"
-./dev/tools/push-images --image-prefix="${IMAGE_PREFIX}"
+./dev/tools/push-images --image-prefix="${IMAGE_PREFIX}" --controller-only
 
 echo "Deploying manifests to kubernetes with prefix ${IMAGE_PREFIX}"
 # Install the "extension" version of the manifest
