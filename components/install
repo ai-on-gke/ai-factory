@@ -22,6 +22,7 @@ gcloud auth configure-docker --quiet
 echo "Installing components..."
 
 "${DIR}/cert-manager/install"
+"${DIR}/service-portals/install"
 "${DIR}/agent-sandbox/install"
 
 echo "All components installed successfully."
