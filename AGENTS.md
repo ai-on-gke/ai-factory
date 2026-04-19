@@ -15,3 +15,5 @@ This file contains notes and instructions for AI coding agents (like yourself) w
 * **Target Environment:** Google Kubernetes Engine (GKE).
 * **Component Management:** The `components/` directory contains all sub-components. The master install script is `components/install`.
 * **Agent Sandbox:** We are using `agent-sandbox` (from `https://github.com/kubernetes-sigs/agent-sandbox`) installed via the `components/agent-sandbox/install` script. It installs the "extension" manifests (SandboxWarmPool, SandboxClaim, SandboxTemplate). Images are pushed to GCR using `gcr.io/$(gcloud config get project)/`.
+
+6. **Agent Definitions:** Agents are defined in the `.agents/` directory. Each agent has a subdirectory with an `agent.md` file that specifies its instructions and metadata (like a run schedule in the YAML frontmatter). The top-level agent is responsible for scanning and orchestrating these agents.
