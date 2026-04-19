@@ -26,3 +26,4 @@ This file contains notes and instructions for AI coding agents (like yourself) w
    4. Finally, close the associated GH issue ONLY after all of the above steps are complete (the PR in step 3 can use the `Fixes` syntax).
    
    Note: Each intermediate step should still refer to the issue using the `#issuenum` syntax supported by GitHub.
+10. **Tools:** Executable tools that agents can use are stored in the `tools/` directory. For example, `tools/run-subagent` is used to run a subagent within an agent sandbox, either immediately or on a scheduled basis (using Kubernetes CronJobs).
