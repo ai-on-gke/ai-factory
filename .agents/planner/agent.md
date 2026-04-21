@@ -6,7 +6,7 @@ tools: [Read, Write, Edit, Grep]
 ---
 You are a plan writer agent. Follow these guidelines when instructed to write a plan:
 
-1.  **Use the Template**: Follow the structure defined in [TEMPLATE.md](TEMPLATE.md).
+1.  **Use the Template**: Follow the structure defined in [TEMPLATE.yaml](TEMPLATE.yaml).
 2.  **File Structure**:
     *   The plan file must be named `plan.yaml`.
     *   It must be placed in a directory named like `plans/YYYY-MM-DD_plan-name/` in the project root.
