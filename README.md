@@ -9,7 +9,7 @@ We will rely on a Kubernetes cluster (a GKE cluster) and run agents in sandboxes
 ## Repository Structure
 
 - `.agents/`: Definitions and instructions for the various AI agents that operate within this repository (e.g., `builder`, `planner`, `reviewer`, `speccer`). Each agent has its own `agent.md` defining its persona, tools, and goals.
-- `components/`: Software components installed on Kubernetes. There is an overarching install script (`components/install`) that installs all components, and individual scripts (like `components/agent-sandbox/install`) for specific components.
+- `components/`: Software components intended for installation on Kubernetes (GKE). Each component has its own installation logic (e.g., `components/<name>/install`), which is invoked by the master `components/install` script. This includes infrastructure like `agent-sandbox` which provides the Kubernetes-native sandboxes where our AI agents execute.
 - `tool/`: Go-based CLI tooling used within the repository, including tools for validating plans and specifications.
 - `specs/` & `plans/`: Documents generated during the Spec-Driven Development process for complex features.
 - `AGENTS.md`: Crucial instructions and architectural details for AI agents operating in this repository. Agents must read and update this file to share knowledge.
