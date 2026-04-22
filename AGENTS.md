@@ -19,3 +19,10 @@ This file contains notes and instructions for AI coding agents (like yourself) w
 6. **Agent Definitions:** Agents are defined in the `.agents/` directory. Each agent has a subdirectory with an `agent.md` file that specifies its instructions and metadata. The file format is Markdown with YAML frontmatter. The frontmatter MUST contain `name` and `description` fields, and should also specify `model` and `tools`. The `name` MUST match the directory name. The body of the file is the system prompt/instructions for the agent. The top-level agent is responsible for scanning and orchestrating these agents.
 7. **Event Triggers:** Agents can be triggered by GitHub events. Note that `@codebot-robot` is the current robot to add to trigger things. For example, assigning an issue to the robot triggers it to solve the issue. Requesting a PR review from the robot triggers the `reviewer` agent to auto-review and approve the PR.
 8. **Resolving Review Comments:** When addressing review comments on a Pull Request, you must resolve the comment threads after pushing your changes. Use the github MCP server tools or the `gh` CLI to resolve them.
+9. **Spec-Driven Development:** When working on issues, agents should automatically follow the spec-driven-development process:
+   1. Generate specs via the `speccer` sub-agent (in `.agents/`), then send for review.
+   2. Once the specs are merged, generate plans using the `planner` agent, then send for review.
+   3. Once the plans are merged, use the `builder` agent to build the feature, then send for review.
+   4. Finally, close the associated GH issue ONLY after all of the above steps are complete (the PR in step 3 can use the `Fixes` syntax).
+   
+   Note: Each intermediate step should still refer to the issue using the `#issuenum` syntax supported by GitHub.
