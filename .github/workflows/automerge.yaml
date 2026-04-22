@@ -15,12 +15,9 @@
 name: Automerge
 
 on:
-  pull_request_target:
+  pull_request_review:
     types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
+      - submitted
 
 permissions:
   pull-requests: write
@@ -29,7 +26,7 @@ permissions:
 jobs:
   automerge:
     runs-on: ubuntu-latest
-    if: '!github.event.pull_request.draft'
+    if: github.event.review.state == 'approved'
     steps:
       - name: Enable automerge
         run: gh pr merge --auto "$PR_URL"
