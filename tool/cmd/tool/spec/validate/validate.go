@@ -33,7 +33,7 @@ var Cmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
-		
+
 		projectRoot, err := findProjectRoot(".")
 		if err != nil {
 			return fmt.Errorf("failed to find project root: %w", err)

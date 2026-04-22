@@ -24,5 +24,5 @@ This file contains notes and instructions for AI coding agents (like yourself) w
    2. Once the specs are merged, generate plans using the `planner` agent, then send for review.
    3. Once the plans are merged, use the `builder` agent to build the feature, then send for review.
    4. Finally, close the associated GH issue ONLY after all of the above steps are complete (the PR in step 3 can use the `Fixes` syntax).
-   
+
    Note: Each intermediate step should still refer to the issue using the `#issuenum` syntax supported by GitHub.

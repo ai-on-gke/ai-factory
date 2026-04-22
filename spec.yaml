@@ -1,6 +1,6 @@
 # This spec.yaml file indicates that spec-driven-development
 # is enabled for this project, and identifies the project
-# root that contains the specs/ dir. 
+# root that contains the specs/ dir.
 
 # name is the project name
 name: ai-factory

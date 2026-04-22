@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark"
+	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 	"gopkg.in/yaml.v2"

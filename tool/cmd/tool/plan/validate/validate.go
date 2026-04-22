@@ -32,21 +32,21 @@ var Cmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		planName := args[0]
-		
+
 		projectRoot, err := findProjectRoot(".")
 		if err != nil {
 			return fmt.Errorf("failed to find project root: %w", err)
 		}
 
 		planDir := filepath.Join(projectRoot, "plans", planName)
-		
+
 		// Validate plan.yaml
 		planFilePath := filepath.Join(planDir, "plan.yaml")
 		relPlanFilePath, err := filepath.Rel(projectRoot, planFilePath)
 		if err != nil {
 			relPlanFilePath = planFilePath
 		}
-		
+
 		data, err := os.ReadFile(planFilePath)
 		if err != nil {
 			fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    failed to read file: %v\n", relPlanFilePath, err)
