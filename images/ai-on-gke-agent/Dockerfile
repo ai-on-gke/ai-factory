@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 RUN npm install -g @google/gemini-cli
 
-COPY entrypoint.sh /entrypoint.sh
+COPY images/ai-on-gke-agent/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
