@@ -17,4 +17,4 @@ if [ ! -f "$PROMPT_FILE" ]; then
 fi
 
 echo "Running gemini-cli for agent ${AGENT_NAME}..."
-gemini-cli --yolo "$(cat $PROMPT_FILE)"
+cat "${PROMPT_FILE}" | gemini-cli --yolo
