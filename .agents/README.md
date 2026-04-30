@@ -13,13 +13,16 @@ Each agent should have its own subdirectory containing an `agent.md` file that d
 
 ## `agent.md` Format
 
-The `agent.md` file should contain a YAML frontmatter section that encodes metadata (like scheduling), followed by the Markdown instructions for the agent.
+The `agent.md` file should contain a YAML frontmatter section that encodes metadata, followed by the Markdown instructions for the agent.
 
 Example:
 
 ```markdown
 ---
-schedule: "every 8 hours"
+name: my-agent
+description: A helpful agent
+model: gemini-3.1-pro
+tools: [Read, Bash]
 ---
 # Agent Instructions
 ...
