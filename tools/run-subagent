@@ -32,9 +32,9 @@ def main():
                 env:
                 - name: AGENT_NAME
                   value: {agent_name}
-                - name: HTTPS_PROXY
+                - name: GEMINI_SERVICE_PORTAL
                   value: "http://gemini-portal:80"
-                - name: SSL_CERT_FILE
+                - name: GEMINI_SERVICE_PORTAL_CA_CERTS
                   value: "/etc/ssl/certs/gemini-portal-ca.crt"
                 volumeMounts:
                 - name: ca-cert
