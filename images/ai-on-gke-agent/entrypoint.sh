@@ -16,5 +16,15 @@ if [ ! -f "$PROMPT_FILE" ]; then
   exit 1
 fi
 
+export GEMINI_API_KEY="fake"
+export GEMINI_CLI_TRUST_WORKSPACE=true
+
+if [ -n "$GEMINI_SERVICE_PORTAL" ]; then
+  export HTTPS_PROXY="$GEMINI_SERVICE_PORTAL"
+fi
+if [ -n "$GEMINI_SERVICE_PORTAL_CA_CERTS" ]; then
+  export NODE_EXTRA_CA_CERTS="$GEMINI_SERVICE_PORTAL_CA_CERTS"
+fi
+
 echo "Running gemini-cli for agent ${AGENT_NAME}..."
 cat "${PROMPT_FILE}" | gemini-cli --yolo
