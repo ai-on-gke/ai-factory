@@ -26,5 +26,5 @@ if [ -n "$GEMINI_SERVICE_PORTAL_CA_CERTS" ]; then
   export NODE_EXTRA_CA_CERTS="$GEMINI_SERVICE_PORTAL_CA_CERTS"
 fi
 
-echo "Running gemini-cli for agent ${AGENT_NAME}..."
-cat "${PROMPT_FILE}" | gemini-cli --yolo
+echo "Running gemini for agent ${AGENT_NAME}..."
+cat "${PROMPT_FILE}" | gemini --yolo
