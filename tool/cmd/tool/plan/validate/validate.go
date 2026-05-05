@@ -16,101 +16,58 @@ package validate
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
-	"github.com/ai-on-gke/ai-factory/tool/pkg/plan"
-	"github.com/ai-on-gke/ai-factory/tool/pkg/spec"
+	pkgvalidate "github.com/ai-on-gke/ai-factory/tool/pkg/plan/validate"
+	"github.com/ai-on-gke/ai-factory/tool/pkg/util"
 	"github.com/spf13/cobra"
 )
+
+// Cmd represents the validate command.
+var allFlag bool
+
+func init() {
+	Cmd.Flags().BoolVar(&allFlag, "all", false, "Validate all plans in the plans/ directory")
+}
 
 // Cmd represents the validate command.
 var Cmd = &cobra.Command{
 	Use:   "validate [plan-name]",
 	Short: "Validates plans",
 	Long:  `Validates that plans follow the right format and schema, and checks their dependencies and auxiliary files. Accepts a plan directory name under plans/.`,
-	Args:  cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if allFlag {
+			if len(args) > 0 {
+				return fmt.Errorf("accepts 0 arg(s) when --all is used, received %d", len(args))
+			}
+			return nil
+		}
+		return cobra.ExactArgs(1)(cmd, args)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		planName := args[0]
-		
-		projectRoot, err := findProjectRoot(".")
+		projectRoot, err := util.FindProjectRoot(".")
 		if err != nil {
 			return fmt.Errorf("failed to find project root: %w", err)
 		}
 
+		if allFlag {
+			if err := pkgvalidate.All(cmd.OutOrStdout(), projectRoot); err != nil {
+				fmt.Fprintln(cmd.OutOrStdout(), "FAIL")
+				return err
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), "PASS")
+			return nil
+		}
+
+		planName := args[0]
+
 		planDir := filepath.Join(projectRoot, "plans", planName)
-		
-		// Validate plan.yaml
-		planFilePath := filepath.Join(planDir, "plan.yaml")
-		relPlanFilePath, err := filepath.Rel(projectRoot, planFilePath)
-		if err != nil {
-			relPlanFilePath = planFilePath
-		}
-		
-		data, err := os.ReadFile(planFilePath)
-		if err != nil {
-			fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    failed to read file: %v\n", relPlanFilePath, err)
-			return fmt.Errorf("validation failed")
-		}
 
-		p, err := plan.Parse(data)
-		if err != nil {
-			fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    parse error: %v\n", relPlanFilePath, err)
-			return fmt.Errorf("validation failed")
-		}
-
-		fmt.Fprintf(cmd.OutOrStdout(), "--- PASS: validate %s\n", relPlanFilePath)
-
-		// Validate DAG
-		if err := p.ValidateDAG(); err != nil {
-			fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    DAG error: %v\n", relPlanFilePath, err)
-			return fmt.Errorf("validation failed")
-		}
-
-		// Validate Spec Existence and Validity
-		for _, task := range p.Tasks {
-			specPath := filepath.Join(projectRoot, "specs", task.Spec+".md")
-			data, err := os.ReadFile(specPath)
-			if err != nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    failed to read spec %q: %v\n", relPlanFilePath, task.Spec, err)
-				return fmt.Errorf("validation failed")
-			}
-
-			_, err = spec.Parse(data)
-			if err != nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "--- FAIL: validate %s\n    spec %q referenced by task %q is invalid: %v\n", relPlanFilePath, task.Spec, task.Name, err)
-				return fmt.Errorf("validation failed")
-			}
-		}
-
-		// Validate Auxiliary Files
-		if err := plan.ValidateAuxiliaryFiles(cmd.OutOrStdout(), planDir, projectRoot, p.Tasks); err != nil {
-			return fmt.Errorf("validation failed")
+		if err := pkgvalidate.Plan(cmd.OutOrStdout(), planDir, projectRoot); err != nil {
+			return err
 		}
 
 		fmt.Fprintln(cmd.OutOrStdout(), "PASS")
 		return nil
 	},
-}
-
-func findProjectRoot(startDir string) (string, error) {
-	dir, err := filepath.Abs(startDir)
-	if err != nil {
-		return "", err
-	}
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "spec.yaml")); err == nil {
-			return dir, nil
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			// Fallback to current directory if spec.yaml is not found anywhere
-			cwd, err := os.Getwd()
-			if err != nil {
-				return "", err
-			}
-			return cwd, nil
-		}
-		dir = parent
-	}
 }
