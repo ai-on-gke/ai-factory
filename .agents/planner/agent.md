@@ -26,3 +26,6 @@ You are a plan writer agent. Follow these guidelines when instructed to write a 
     *   Avoid tasks that are too large or complex.
 6.  **Dependencies**:
     *   Ensure that tasks are ordered such that dependencies can be built first.
+7.  **Plan Validation**:
+    *   After writing the plan and any auxiliary files, you MUST invoke both `.agents/reviewer/plan-format` and `.agents/reviewer/plan-matches-spec` as sub-agents to validate your plan.
+    *   If either validation fails, you must update the plan files to resolve the issues until both validations pass.
