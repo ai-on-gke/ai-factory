@@ -22,10 +22,11 @@ The container image containing `gemini-cli` and the necessary environment to exe
 
 ## Key Requirements
 
-- Assume execution on GKE within a `gvisor` runtime.
-- Image must be configured to route all external traffic through the designated TLS-terminating reverse proxy.
+- Assume execution on GKE within a `gvisor` runtime as the "Runtime" container in a multi-container Pod.
+- Image will have all external traffic intercepted by a local reverse proxy sidecar via iptables rules set up by an init container.
 - Must trust the custom CA certificates provided by the reverse proxy.
 - Must lack direct access to credentials; all privileged operations must rely on the reverse proxy or MCP tools.
+- Receive configuration, prompts, context, and tools via KRM resources delivered on disk.
 
 ## Design
 
@@ -34,9 +35,27 @@ The container image containing `gemini-cli` and the necessary environment to exe
 2. **Tooling Integration**:
    - Install the `gemini-cli` binary and its prerequisites.
    - Include standard utilities needed for codebase interaction (e.g., `git`, language runtimes like Go, Python, or Node.js depending on the factory's target projects).
-3. **Network Configuration**:
-   - Set environment variables like `HTTPS_PROXY` and `HTTP_PROXY` by default, or provide an entrypoint script that configures them based on Pod environment variables.
-   - Include logic in the entrypoint or base configuration to append the reverse proxy's custom CA certificate to the system's trusted certificate store, ensuring seamless TLS connections to intercepted endpoints.
+3. **Execution Environment**:
+   - The image runs as a standard runtime container with `restartPolicy: Always`.
+   - Uses the auxiliary volume mounted at a designated path (e.g., `/workspace`) for executing tasks.
+   - Trusts the reverse proxy's custom CA certificate, ensuring seamless TLS connections to intercepted endpoints.
+
+## Configuration Example
+
+An example of configuration for the Agent Runtime delivered to disk:
+
+```yaml
+apiVersion: factory.gke.io/v1alpha1
+kind: AgentRuntimeConfig
+metadata:
+  name: gemini-cli-runtime
+spec:
+  prompt: |
+    Execute the following task against the codebase in /workspace.
+  tools:
+    - name: mcp-github
+      endpoint: "http://localhost:8080/mcp"
+```
 
 ## Tests
 
