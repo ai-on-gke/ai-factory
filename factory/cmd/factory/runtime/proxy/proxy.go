@@ -15,15 +15,42 @@
 package proxy
 
 import (
+	"flag"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/spf13/cobra"
+
+	proxycore "github.com/ai-on-gke/ai-factory/factory/pkg/runtime/proxy"
 )
 
 // Cmd represents the proxy command
 var Cmd = &cobra.Command{
-	Use:   "proxy",
-	Short: "Manage the proxy",
-	Long:  `Subcommands for managing the proxy.`,
+	Use:                "proxy",
+	Short:              "Run the egress reverse proxy",
+	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		fs := flag.NewFlagSet("proxy", flag.ContinueOnError)
+		fs.SetOutput(io.Discard) // prevent default error printing so we can print custom usage
+
+		configPath := fs.String("config", "", "path to config file")
+
+		err := fs.Parse(args)
+		if err != nil || *configPath == "" || len(fs.Args()) > 0 {
+			fmt.Println("Usage: factory runtime proxy --config <path>")
+			os.Exit(1)
+		}
+
+		cfg, err := proxycore.LoadConfig(*configPath)
+		if err != nil {
+			log.Fatalf("Failed to load config: %v", err)
+		}
+
+		server := proxycore.NewServer(cfg)
+		log.Printf("Starting proxy on %s", cfg.Spec.ListenAddress)
+		log.Fatal(http.ListenAndServe(cfg.Spec.ListenAddress, server))
 	},
 }
