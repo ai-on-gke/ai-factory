@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -50,7 +49,9 @@ var Cmd = &cobra.Command{
 		}
 
 		server := proxycore.NewServer(cfg)
-		log.Printf("Starting proxy on %s", cfg.Spec.ListenAddress)
-		log.Fatal(http.ListenAndServe(cfg.Spec.ListenAddress, server))
+		ctx := cmd.Context()
+		if err := server.Start(ctx); err != nil {
+			log.Fatalf("Proxy server failed: %v", err)
+		}
 	},
 }

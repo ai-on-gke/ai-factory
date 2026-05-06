@@ -20,7 +20,9 @@ func TestParseConfig(t *testing.T) {
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: allow-github-api
       allowedURLs:
@@ -36,18 +38,36 @@ spec:
 			expectError: false,
 		},
 		{
-			name: "missing listenAddress",
+			name: "missing listen address",
 			input: `
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
+  listen:
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
       allowedVerbs: ["GET"]
 `,
 			expectError: true,
-			errorMsg:    "listenAddress is required",
+			errorMsg:    "listen address is required",
+		},
+		{
+			name: "missing ports",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: true,
+			errorMsg:    "at least one of listen.httpPort or listen.httpsPort must be specified",
 		},
 		{
 			name: "missing allowedURLs",
@@ -55,7 +75,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedVerbs: ["GET"]
@@ -69,7 +91,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
@@ -83,7 +107,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: Pod
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
 `,
 			expectError: true,
 			errorMsg:    "invalid kind: Pod",
@@ -94,7 +120,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
@@ -112,7 +140,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
@@ -130,7 +160,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
@@ -148,7 +180,9 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: ["*"]
@@ -167,13 +201,111 @@ spec:
 apiVersion: factory.ai.gke.io/v1alpha1
 kind: ProxySpec
 spec:
-  listenAddress: 127.0.0.1:8080
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
   rules:
     - name: rule1
       allowedURLs: "*"
 `,
 			expectError: true,
 			errorMsg:    "failed to unmarshal config",
+		},
+		{
+			name: "missing tls when httpsPort specified",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+    httpsPort: 8443
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: true,
+			errorMsg:    "tls configuration is required when httpsPort is specified",
+		},
+		{
+			name: "missing trustBundleExportPath",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+    httpsPort: 8443
+  tls: {}
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: true,
+			errorMsg:    "tls.trustBundleExportPath is required",
+		},
+		{
+			name: "missing caKeyFile",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+    httpsPort: 8443
+  tls:
+    trustBundleExportPath: /tmp/ca.crt
+    caCertFile: /tmp/ca.crt
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: true,
+			errorMsg:    "tls.caKeyFile is required when tls.caCertFile is specified",
+		},
+		{
+			name: "missing caCertFile",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+    httpsPort: 8443
+  tls:
+    trustBundleExportPath: /tmp/ca.crt
+    caKeyFile: /tmp/ca.key
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: true,
+			errorMsg:    "tls.caCertFile is required when tls.caKeyFile is specified",
+		},
+		{
+			name: "valid tls config",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listen:
+    address: 127.0.0.1
+    httpPort: 8080
+    httpsPort: 8443
+  tls:
+    trustBundleExportPath: /tmp/ca.crt
+    caCertFile: /tmp/ca.crt
+    caKeyFile: /tmp/ca.key
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+`,
+			expectError: false,
 		},
 	}
 

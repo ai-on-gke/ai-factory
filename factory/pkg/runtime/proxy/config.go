@@ -10,8 +10,21 @@ import (
 
 // ProxySpec defines the desired state of Proxy
 type ProxySpec struct {
-	ListenAddress string      `json:"listenAddress"`
-	Rules         []ProxyRule `json:"rules"`
+	Listen ListenConfig  `json:"listen"`
+	TLS    *TLSConfig    `json:"tls,omitempty"`
+	Rules  []ProxyRule   `json:"rules"`
+}
+
+type ListenConfig struct {
+	Address   string `json:"address"`
+	HTTPPort  int    `json:"httpPort,omitempty"`
+	HTTPSPort int    `json:"httpsPort,omitempty"`
+}
+
+type TLSConfig struct {
+	TrustBundleExportPath string `json:"trustBundleExportPath"`
+	CACertFile            string `json:"caCertFile,omitempty"`
+	CAKeyFile             string `json:"caKeyFile,omitempty"`
 }
 
 type ProxyRule struct {
@@ -50,8 +63,27 @@ func ParseConfig(data []byte) (*ProxyConfig, error) {
 		return nil, fmt.Errorf("invalid kind: %s", cfg.Kind)
 	}
 
-	if cfg.Spec.ListenAddress == "" {
-		return nil, fmt.Errorf("listenAddress is required")
+	if cfg.Spec.Listen.Address == "" {
+		return nil, fmt.Errorf("listen address is required")
+	}
+	if cfg.Spec.Listen.HTTPPort == 0 && cfg.Spec.Listen.HTTPSPort == 0 {
+		return nil, fmt.Errorf("at least one of listen.httpPort or listen.httpsPort must be specified")
+	}
+	if cfg.Spec.Listen.HTTPSPort != 0 {
+		if cfg.Spec.TLS == nil {
+			return nil, fmt.Errorf("tls configuration is required when httpsPort is specified")
+		}
+	}
+	if cfg.Spec.TLS != nil {
+		if cfg.Spec.TLS.TrustBundleExportPath == "" {
+			return nil, fmt.Errorf("tls.trustBundleExportPath is required")
+		}
+		if cfg.Spec.TLS.CACertFile != "" && cfg.Spec.TLS.CAKeyFile == "" {
+			return nil, fmt.Errorf("tls.caKeyFile is required when tls.caCertFile is specified")
+		}
+		if cfg.Spec.TLS.CACertFile == "" && cfg.Spec.TLS.CAKeyFile != "" {
+			return nil, fmt.Errorf("tls.caCertFile is required when tls.caKeyFile is specified")
+		}
 	}
 
 	for i, rule := range cfg.Spec.Rules {

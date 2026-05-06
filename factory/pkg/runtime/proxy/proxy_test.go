@@ -32,7 +32,10 @@ func TestProxyFlow(t *testing.T) {
 	// Create config
 	cfg := &ProxyConfig{
 		Spec: ProxySpec{
-			ListenAddress: "127.0.0.1:8080",
+			Listen: ListenConfig{
+				Address:  "127.0.0.1",
+				HTTPPort: 8080,
+			},
 			Rules: []ProxyRule{
 				{
 					Name: "allow-upstream",
