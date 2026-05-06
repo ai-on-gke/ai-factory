@@ -3,6 +3,7 @@ package proxy
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"sigs.k8s.io/yaml"
 )
@@ -24,12 +25,13 @@ type HeaderInjection struct {
 	Header      string `json:"header"`
 	Placeholder string `json:"placeholder"`
 	SecretFile  string `json:"secretFile"`
+	SecretValue string `json:"-"`
 }
 
 // ProxyConfig is the top-level configuration object.
 type ProxyConfig struct {
-	APIVersion string    `json:"apiVersion"`
 	Kind       string    `json:"kind"`
+	APIVersion string    `json:"apiVersion"`
 	Spec       ProxySpec `json:"spec"`
 }
 
@@ -69,9 +71,17 @@ func ParseConfig(data []byte) (*ProxyConfig, error) {
 			if rule.Injection.Placeholder == "" {
 				return nil, fmt.Errorf("injection placeholder is required for rule %s", rule.Name)
 			}
+			if strings.Contains(rule.Injection.Placeholder, " ") {
+				return nil, fmt.Errorf("injection placeholder for rule %s should not contain spaces (do not include prefixes like 'Bearer ')", rule.Name)
+			}
 			if rule.Injection.SecretFile == "" {
 				return nil, fmt.Errorf("injection secretFile is required for rule %s", rule.Name)
 			}
+			secretData, err := os.ReadFile(rule.Injection.SecretFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read secret file %q for rule %s: %w", rule.Injection.SecretFile, rule.Name, err)
+			}
+			cfg.Spec.Rules[i].Injection.SecretValue = strings.TrimRight(string(secretData), "\r\n\t ")
 		}
 	}
 

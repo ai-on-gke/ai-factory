@@ -60,7 +60,7 @@ spec:
         - POST
       injection:
         header: Authorization
-        placeholder: Bearer GITHUB_TOKEN_PLACEHOLDER
+        placeholder: GITHUB_TOKEN_PLACEHOLDER
         secretFile: /var/run/secrets/github/token
 ```
 
@@ -75,6 +75,7 @@ spec:
 4. **Header Injection**:
    - If a rule matches and contains an `injection` block, the proxy inspects the request headers for the configured `header` name.
    - If the header exists and matches or contains the configured `placeholder`, the proxy reads the secret token from `secretFile`, trims any trailing whitespace, and replaces the placeholder with the token value.
+   - Note: The placeholder must not contain spaces or prefixes like "Bearer " (e.g. use `GITHUB_TOKEN_PLACEHOLDER` instead of `Bearer GITHUB_TOKEN_PLACEHOLDER`), otherwise the substring replacement will inadvertently strip the prefix.
    - If the placeholder is not present, the proxy does not inject the token (as per the requirement to only inject when the pre-configured placeholder value is set).
 5. **Upstream Proxying**:
    - The proxy leverages `httputil.ReverseProxy` from the standard library.

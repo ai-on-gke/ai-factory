@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 )
@@ -28,8 +30,8 @@ spec:
         - POST
       injection:
         header: Authorization
-        placeholder: Bearer GITHUB_TOKEN_PLACEHOLDER
-        secretFile: /var/run/secrets/github/token
+        placeholder: GITHUB_TOKEN_PLACEHOLDER
+        secretFile: %s
 `,
 			expectError: false,
 		},
@@ -141,6 +143,25 @@ spec:
 			errorMsg:    "injection secretFile is required for rule rule1",
 		},
 		{
+			name: "injection placeholder with spaces",
+			input: `
+apiVersion: factory.ai.gke.io/v1alpha1
+kind: ProxySpec
+spec:
+  listenAddress: 127.0.0.1:8080
+  rules:
+    - name: rule1
+      allowedURLs: ["*"]
+      allowedVerbs: ["GET"]
+      injection:
+        header: Auth
+        placeholder: Bearer TOKEN
+        secretFile: /test
+`,
+			expectError: true,
+			errorMsg:    "should not contain spaces",
+		},
+		{
 			name: "malformed yaml",
 			input: `
 apiVersion: factory.ai.gke.io/v1alpha1
@@ -158,7 +179,18 @@ spec:
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := ParseConfig([]byte(tc.input))
+			input := tc.input
+			if strings.Contains(input, "%s") {
+				f, err := os.CreateTemp("", "secret")
+				if err != nil {
+					t.Fatalf("failed to create temp file: %v", err)
+				}
+				defer os.Remove(f.Name())
+				f.WriteString("secret")
+				f.Close()
+				input = fmt.Sprintf(input, f.Name())
+			}
+			_, err := ParseConfig([]byte(input))
 			if tc.expectError {
 				if err == nil {
 					t.Fatalf("expected error, got nil")

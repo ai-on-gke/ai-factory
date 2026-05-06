@@ -9,17 +9,22 @@ import (
 // MatchRequest evaluates an incoming HTTP request against a list of proxy rules.
 // It returns the matching rule if one exists, or nil otherwise.
 func MatchRequest(req *http.Request, rules []ProxyRule) *ProxyRule {
-	// Prevent path traversal attacks
-	if strings.Contains(req.URL.Path, "..") {
-		return nil
+	// Prevent path traversal and bypass attacks.
+	// We require the client to send a strictly canonical path. If path.Clean
+	// alters the path (other than stripping a trailing slash), it contains
+	// non-canonical elements like "//", "/./", or "/../", and we reject it.
+	cleanedPath := path.Clean(req.URL.Path)
+	if cleanedPath != "/" && strings.HasSuffix(req.URL.Path, "/") {
+		cleanedPath += "/"
 	}
-	// Prevent /./ bypasses
-	if strings.Contains(req.URL.Path, "/./") || req.URL.Path == "/." || strings.HasSuffix(req.URL.Path, "/.") {
+	if cleanedPath != req.URL.Path {
 		return nil
 	}
 
 	// Normalize URL scheme and host for case-insensitive matching.
 	// We copy the URL so we don't modify the original request.
+	// Per RFC 3986, scheme and host are case-insensitive. Normalizing them
+	// prevents bypasses or brittle rules. The path remains case-sensitive.
 	normalizedURL := *req.URL
 	normalizedURL.Scheme = strings.ToLower(normalizedURL.Scheme)
 	normalizedURL.Host = strings.ToLower(normalizedURL.Host)

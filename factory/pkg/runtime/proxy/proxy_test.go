@@ -44,6 +44,7 @@ func TestProxyFlow(t *testing.T) {
 						Header:      "Authorization",
 						Placeholder: "PLACEHOLDER",
 						SecretFile:  secretFile,
+						SecretValue: "my-secret-token",
 					},
 				},
 			},

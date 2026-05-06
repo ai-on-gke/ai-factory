@@ -1,9 +1,7 @@
 package proxy
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -22,15 +20,7 @@ func InjectHeader(req *http.Request, rule *ProxyRule) error {
 		return nil
 	}
 
-	secretData, err := os.ReadFile(rule.Injection.SecretFile)
-	if err != nil {
-		return fmt.Errorf("failed to read secret file %q: %w", rule.Injection.SecretFile, err)
-	}
-
-	// Trim trailing whitespace
-	secretValue := strings.TrimRight(string(secretData), "\r\n\t ")
-
-	newValue := strings.Replace(headerValue, placeholder, secretValue, 1)
+	newValue := strings.Replace(headerValue, placeholder, rule.Injection.SecretValue, 1)
 	req.Header.Set(headerName, newValue)
 
 	return nil

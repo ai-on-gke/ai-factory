@@ -22,6 +22,7 @@ func TestInjectHeader(t *testing.T) {
 			Header:      "Authorization",
 			Placeholder: "PLACEHOLDER",
 			SecretFile:  secretFilePath,
+			SecretValue: "my-secret-token",
 		},
 	}
 
@@ -55,20 +56,6 @@ func TestInjectHeader(t *testing.T) {
 			rule: &ProxyRule{Name: "no-injection"},
 			initialHeader: "Bearer PLACEHOLDER",
 			expectHeader:  "Bearer PLACEHOLDER",
-		},
-		{
-			name: "secret file read error",
-			rule: &ProxyRule{
-				Name: "bad-file",
-				Injection: &HeaderInjection{
-					Header:      "Authorization",
-					Placeholder: "PLACEHOLDER",
-					SecretFile:  "/does/not/exist",
-				},
-			},
-			initialHeader: "PLACEHOLDER",
-			expectHeader:  "PLACEHOLDER",
-			expectError:   true,
 		},
 	}
 
