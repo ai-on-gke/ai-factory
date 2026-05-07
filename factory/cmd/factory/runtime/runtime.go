@@ -15,8 +15,6 @@
 package runtime
 
 import (
-	"github.com/ai-on-gke/ai-factory/factory/cmd/factory/runtime/agent"
-	initcmd "github.com/ai-on-gke/ai-factory/factory/cmd/factory/runtime/init"
 	"github.com/ai-on-gke/ai-factory/factory/cmd/factory/runtime/proxy"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +30,5 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.AddCommand(agent.Cmd)
-	Cmd.AddCommand(initcmd.Cmd)
 	Cmd.AddCommand(proxy.Cmd)
 }
