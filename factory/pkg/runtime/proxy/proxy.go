@@ -30,7 +30,7 @@ import (
 type Server struct {
 	Config         *ProxyConfig
 	Proxy          *httputil.ReverseProxy
-	tlsInterceptor *tls.Interceptor
+	tlsCertGen     *tls.CertGenerator
 }
 
 // NewServer creates a new Server instance based on the provided configuration.
@@ -58,20 +58,19 @@ func NewServer(config *ProxyConfig) *Server {
 		},
 	}
 
-	var tlsInterceptor *tls.Interceptor
+	var tlsCertGen *tls.CertGenerator
 	if config.Spec.TLS != nil {
 		caManager, err := tls.NewCAManager(config.Spec.TLS.CACertFile, config.Spec.TLS.CAKeyFile, config.Spec.TLS.TrustBundleExportPath)
 		if err != nil {
 			log.Fatalf("failed to initialize CA manager: %v", err) // TODO: Better error handling, maybe return error
 		}
-		cg := tls.NewCertGenerator(caManager)
-		tlsInterceptor = tls.NewInterceptor(cg)
+		tlsCertGen = tls.NewCertGenerator(caManager)
 	}
 
 	return &Server{
-		Config:         config,
-		Proxy:          proxy,
-		tlsInterceptor: tlsInterceptor,
+		Config:     config,
+		Proxy:      proxy,
+		tlsCertGen: tlsCertGen,
 	}
 }
 
@@ -96,11 +95,11 @@ func (s *Server) Start(ctx context.Context) error {
 		}()
 	}
 
-	if s.Config.Spec.Listen.HTTPSPort != 0 && s.tlsInterceptor != nil {
+	if s.Config.Spec.Listen.HTTPSPort != 0 && s.tlsCertGen != nil {
 		httpsServer := &http.Server{
 			Addr:      fmt.Sprintf("%s:%d", s.Config.Spec.Listen.Address, s.Config.Spec.Listen.HTTPSPort),
 			Handler:   s,
-			TLSConfig: s.tlsInterceptor.TLSConfig(),
+			TLSConfig: s.tlsCertGen.TLSConfig(),
 		}
 		go func() {
 			log.Printf("Starting HTTPS proxy on %s", httpsServer.Addr)

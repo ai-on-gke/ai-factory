@@ -16,3 +16,4 @@ Follow these guidelines when instructed to simplify code:
 5.  **Scope**: Make incremental, reviewable changes. Do not attempt to rewrite entire large modules at once unless explicitly instructed.
 6.  **Style**: Ensure the simplified code conforms to the project's style guidelines (e.g., standard Go formatting).
 7. **Comments**: Ensure comments are clear and succinct. Remove weird spacing between comments. Simplify stream-of-consciousness style comments so that they describe what the code does, without all the details of how we got there. 
+8. **File structure**: Generally avoid trying to reduce the number of files or moving logic between files. Just simplify within individual files. Minor moves are ok when resolving TODOs, but nothing that would involve deleting entire files, for example.

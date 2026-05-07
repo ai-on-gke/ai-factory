@@ -19,13 +19,11 @@ import (
 	"testing"
 )
 
-func TestInterceptor_TLSConfig(t *testing.T) {
-	// Create a dummy CA manager and cert generator for testing
+func TestCertGenerator_TLSConfig(t *testing.T) {
 	caManager, _ := NewCAManager("", "", "/tmp/dummy-ca.crt")
 	cg := NewCertGenerator(caManager)
-	interceptor := NewInterceptor(cg)
 
-	config := interceptor.TLSConfig()
+	config := cg.TLSConfig()
 	if config == nil {
 		t.Fatal("expected TLS config, got nil")
 	}
@@ -38,7 +36,6 @@ func TestInterceptor_TLSConfig(t *testing.T) {
 		t.Errorf("expected MinVersion TLS1.2, got %v", config.MinVersion)
 	}
 
-	// Test the callback wrapper (basic test to ensure it delegates correctly)
 	hello := &tls.ClientHelloInfo{ServerName: "test.com"}
 	cert, err := config.GetCertificate(hello)
 	if err != nil {
