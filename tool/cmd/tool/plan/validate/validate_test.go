@@ -131,3 +131,86 @@ func TestValidatePlan_Cycle(t *testing.T) {
 		t.Errorf("Expected 'FAIL' in output")
 	}
 }
+
+func TestValidatePlan_All(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	if err := copyDir("testdata/success", tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	origCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(origCwd)
+
+	Cmd.SetArgs([]string{"--all"})
+	var out bytes.Buffer
+	Cmd.SetOut(&out)
+
+	// Reset flag for isolation
+	allFlag = false
+
+	err = Cmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed: %v", err)
+	}
+
+	output := out.String()
+	t.Logf("Output:\n%s", output)
+
+	expectedLogs := []string{
+		"--- PASS: validate plans/2026-04-20_test-plan/plan.yaml",
+		"--- PASS: validate plans/2026-04-20_test-plan/task-a.md",
+		"PASS",
+	}
+
+	for _, log := range expectedLogs {
+		if !strings.Contains(output, log) {
+			t.Errorf("Expected log %q not found in output", log)
+		}
+	}
+}
+
+func TestValidatePlan_All_Failure(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	if err := copyDir("testdata/cycle", tmpDir); err != nil {
+		t.Fatal(err)
+	}
+
+	origCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(origCwd)
+
+	Cmd.SetArgs([]string{"--all"})
+	var out bytes.Buffer
+	Cmd.SetOut(&out)
+
+	// Reset flag for isolation
+	allFlag = false
+
+	err = Cmd.Execute()
+	if err == nil {
+		t.Fatal("Expected command to fail, but it succeeded")
+	}
+
+	output := out.String()
+	t.Logf("Output:\n%s", output)
+
+	if !strings.Contains(output, "DAG error: cyclic dependency found in tasks") {
+		t.Errorf("Expected DAG error message not found in output")
+	}
+	if !strings.Contains(output, "FAIL") {
+		t.Errorf("Expected 'FAIL' in output")
+	}
+}
